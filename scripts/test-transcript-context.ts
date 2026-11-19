@@ -6,7 +6,7 @@
  * `context.systemPrompt` / `context.tools` fields.
  */
 import type { Api, AssistantMessage, Context, Model, Tool } from "@earendil-works/pi-ai";
-import { buildRequest, convertMessages } from "../src/stream/stream.ts";
+import { buildRequest, convertMessages, sanitizeSystemPrompt } from "../src/stream/stream.ts";
 
 function fail(message: string): never {
   throw new Error(message);
@@ -130,7 +130,7 @@ const sectionContext = {
   ],
 } as unknown as Context;
 const sectionReq = buildRequest(testModel, sectionContext, "test-project", {}, "gemini-3.8-flash");
-assert.ok(systemText(sectionReq).includes("You are a helpful coding assistant."));
+assert.ok(systemText(sectionReq).includes("You are a helpful software development assistant."));
 assert.ok(systemText(sectionReq).includes("Follow all coding conventions."));
 assert.deepEqual(declarations(sectionReq), ["bash"]);
 
@@ -170,6 +170,15 @@ const multiTurnContext = {
 const dynamicReq = buildRequest(testModel, multiTurnContext, "test-project", {}, "gemini-3.8-flash");
 assert.deepEqual(declarations(dynamicReq), ["edit"]);
 assert.ok(systemText(dynamicReq).includes("Updated system prompt"));
+
+const falseResourceExhaustedPrompt = sanitizeSystemPrompt(`
+You are a coding assistant running inside pi, a coding agent harness.
+When asked about codemode scripts and non-LLM models such as classifiers and image models, read the relevant docs.
+`);
+assert.ok(!falseResourceExhaustedPrompt.includes("coding assistant"));
+assert.ok(!falseResourceExhaustedPrompt.includes("non-LLM models"));
+assert.ok(falseResourceExhaustedPrompt.includes("software development assistant"));
+assert.ok(falseResourceExhaustedPrompt.includes("classifier models, and image-generation models"));
 
 const noToolsContext = {
   messages: [

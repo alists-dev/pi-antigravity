@@ -941,6 +941,10 @@ function mapToolChoiceMode(
 export function sanitizeSystemPrompt(text: string): string {
   return text
     .replace(
+      /codemode scripts and non-LLM models such as classifiers and image models/gi,
+      "codemode scripts, classifier models, and image-generation models",
+    )
+    .replace(
       /running inside pi,\s*a coding agent harness/gi,
       "running inside your development environment",
     )
@@ -953,6 +957,7 @@ export function sanitizeSystemPrompt(text: string): string {
       /(coding agent )inside pi(?=[.,!?;:\s]|$)(?!\.\w)/gi,
       "$1inside your development environment",
     )
+    .replace(/\bcoding assistant\b/gi, "software development assistant")
     .replace(/\bpractical,\s*and tool-aware\./gi, "practical, and tool aware.");
 }
 
